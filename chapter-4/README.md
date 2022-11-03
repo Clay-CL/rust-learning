@@ -188,3 +188,31 @@ let r3 = &mut s; // PROBLEM
 
 println!("{}, {}, {}", r1, r2, r3);
 ```
+
+### Dangling References
+- Essentially a pointer pointing to an invalid memory location (to no memory)
+- Rust prevents this at compile time
+```rust
+fn main() {
+  let ref_to_nothing = dangle();
+}
+
+fn dangle() -> &String { // this func returns a ref to a string
+  let s = String::from("hello"); // allocates memory in the heap
+
+  &s // returns a ref to the string s
+} // s goes out of scope and the value is dropped.
+// this is when &s becomes invalid
+```
+- rust throws an error at compile time
+```docker
+this function's return type contains a borrowed value, but there is no value for it to be borrowed from
+```
+- One way to address this is to claim ownership of the string by returning the value
+```rust
+fn dangle() -> String {
+  let s = String::from("hello");
+  
+  s
+}
+```
