@@ -49,5 +49,142 @@ let y = x;
 
 ```rust
 let s1 = String::from("Hello");
-    let s2 = s1;
+let s2 = s1;
+```
+> when a variable goes out of scope, Rust automatically calls the drop function and cleans up the heap memory for that variable.
+- when this is done to variables stored in the heap, Rust only moves the data and doesn't automatically creates deep copies of them
+
+### Ownership and functions
+- if a variable is passed in a function as a parameter, it loses ownership once it is completed being used by the function
+```rust
+fn main() {
+    ....
+    let s = String::from("hello");
+
+    some_function(s);
+    
+    println("s = {s}"); // this would throw an error when compiled
+    ....    
+}
+
+fn some_function(some_string: String) {
+    println!("{some_string}");
+} // after this line, the variable some_string goes out of scope
+// the drop function is called then.
+
+```
+- Rust does let us return multiple values using a tuple
+```rust
+fn main() {
+    let s1 = String::from("hello");
+
+    let (s2, len) = calculate_length(s1);
+
+    println!("The length of '{}' is {}.", s2, len);
+}
+
+fn calculate_length(s: String) -> (String, usize) {
+    let length = s.len(); // len() returns the length of a String
+
+    (s, length)
+}
+```
+
+## References and Borrowing
+- The issue with the above code is that to use the string again after calculating it's length;
+ One would need to return it
+- the above code can be optimized as follows:
+```rust
+fn main() {
+  let s1 = String::from("hello");
+  let len = calculate_length(&s1);
+}
+
+fn calculate_length(s: &String) -> usize {
+  s.len()
+} // After this s goes out of scope, but since it doesn't have ownership
+// of what it is referencing, it is not dropped 
+```
+Just like in cpp, in rust too
+- `&` -> referencing
+- `*` -> dereferencing
+
+> This action of creating a reference is called `Borrowing`
+
+- One cannot modify something that is being borrowed, just like a rented bike
+
+```rust
+fn change_str(some_string: &String) {
+  // this will throw an error during compile time
+  // error[E0596]: cannot borrow `*some_string` as mutable, as it is behind a `&` reference
+  some_string.push_str(", World!");
+}
+```
+
+### Mutable References
+- the above code snippet can be fixed by declared the parameter as mutable
+- and by passing a mutable reference
+```rust
+fn main() {
+  let mut s = String::from("hello");
+  change_str(&mut s);
+}
+
+fn change_str(some_string: &mut String) {
+  some_string.push_str(", world!");
+}
+```
+- there is a restriction though : you can only borrow a mutable reference once at a time.
+- the following code will fail compilation
+```rust
+let mut s = String::from("hello");
+
+let r1 = &mut s;
+let r2 = &mut s; // will cause error here
+// error[E0499]: cannot borrow `s` as mutable more than once at a time
+
+println("{}, {}", r1, r2);
+```
+- the only borrow once at a given time is for mutation but in a controlled fashion
+- This prevents data races. A data race is when
+   - 2 or more pointers access the same data at the same time
+   - At least one of the pointers is used to write the data
+   - No synchronization
+- Rust doesn't compile code with data races
+- The error code above can be altered to ensure both r1 and r2 can mutate s
+- You could 
+  1. Scope it out
+      ```rust
+      let mut s = String::from("Hello");
+      {
+        let r1 = &mut s;
+      }
+      let r2 = &mut s;
+      ```
+  2. Borrow it after r1 is out of scope
+      ```rust
+      let mut s = String::from("hello");
+      let r1 = &mut s;
+      println!("r1 : {}",r1);
+
+      let r2 = &mut s;
+      println!("r2 : {}",r2);
+      ```
+  1. Let r2 borrow a mutable r1
+      ```rust
+      let mut s = String::from("hello");
+      let mut r1 = &mut s;
+      let r2 = &mut r1;
+      println!("{}, {}", r1, r2);
+      ```
+- There is also a rule for combining mutable and immutable references
+This code is erroneous
+```rust
+let mut s = String::from("Hello");
+let r1 = &s; // no problem
+let r2 = &s; // no problem
+let r3 = &mut s; // PROBLEM
+// error[E0502]: cannot borrow `s` as mutable because it is also borrowed as immutable
+
+println!("{}, {}, {}", r1, r2, r3);
 ```
