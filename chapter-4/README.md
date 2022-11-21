@@ -216,3 +216,26 @@ fn dangle() -> String {
   s
 }
 ```
+
+## Slice Type
+- Slices let you reference a contiguous sequence of elements in a collection rather than the whole collection
+- It's a kind of reference, hence no ownership
+
+### String Slices
+- a ref to a part of a string
+- denoted by `&str`
+```rust
+let s = String::from("Hello World");
+
+let hello = &s[0..5];
+let world = &s[6..1];
+```
+- here hello and world variables are references to a part of a string
+![](./imgs/slice-1.svg)
+
+
+
+
+
+
+
