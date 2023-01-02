@@ -76,4 +76,40 @@ fn main() {
 - `&str` could have been used, but `String` is used so that the struct can own all the data
 
 
+## Methods
+- functions defined in the context of a struct
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        rect1.area()
+    );
+}
+
+```
+
+- Rust doesn’t have an equivalent to the -> operator; instead, Rust has a feature called automatic referencing and dereferencing. Calling methods is one of the few places in Rust that has this behavior.
+- following is the same
+```rust
+p1.distance(&p2);
+(&p1).distance(&p2);
+```
+
 
